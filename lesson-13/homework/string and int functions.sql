@@ -55,27 +55,48 @@ If the first column is null, move to the next, and so on. If all columns are nul
 select coalesce(ID,ssn,passportid,itin) from person
 
 --Medium part
---9
+--1
 --Split column FullName into 3 part ( Firstname, Middlename, and Lastname).(Students Table)
-select left(FullName, charindex(' ', fullname)-1) as FirstName, 
-substring(fullname, charindex(' ', fullname)+1, charindex(' ', fullname, charindex(' ', fullname)+1) - 
-charindex(' ', fullname))as MiddleName, 
-right(fullname, len(fullname)-charindex(' ', fullname, charindex(' ', fullname)+1))as LastName 
-from Students 
+select substring(fullname, 1, charindex(' ', FullName)-1) as first_name,
+substring(fullname, charindex(' ', fullname, charindex(' ', fullname)+1)+1, len(fullname)) as last_name,
+substring(fullname, charindex(' ', fullname), charindex(' ', fullname, charindex(' ', fullname)+1) 
+- charindex(' ', fullname)) as middle_name from Students
 
---10
---For every customer that had a delivery to California, 
---provide a result set of the customer orders that were delivered to Texas. (Orders Table)
+--2
+--For every customer that had a delivery to California, provide a result set of the customer orders that were delivered to Texas. (Orders Table)
+select * from Orders as o1
+inner join orders as o2
+on o1.CustomerID = o2.CustomerID
+where o1.DeliveryState = 'CA'
+and o2.DeliveryState = 'TX'
 
---11
---Write an SQL statement that can group concatenate the following values.(DMLTable)
-
---12
+--4
 --Find all employees whose names (concatenated first and last) contain the letter "a" at least 3 times.
-select * from Employees where len(lower(concat(first_name,last_name))) - 
-len(replace(lower(concat(First_Name,Last_name)), 'a', ''))  >= 3 
+select concat(first_name,' ',last_name)from Employees where
+patindex('%a%a%a',concat(First_name,' ',Last_name))<>0 
 
---13
+--5
 --The total number of employees in each department and the percentage of those employees 
 --who have been with the company for more than 3 years(Employees)
-select * from Employees 
+
+select * from Employees where datediff(year, HIRE_DATE,getdate())> 3
+select DEPARTMENT_ID, count(employee_ID)as count_emp from Employees group by DEPARTMENT_ID
+select count(*) as total_emp, 
+count(case when datediff(year, HIRE_DATE,getdate())> 3 then 1
+end) as hire_3
+
+from Employees
+
+--6
+--Write an SQL statement that determines the most and least experienced Spaceman ID by their job description.(Personal)
+select max(MissionCount)as max_exp, min(missionCount) as min_exp, JobDescription,SpacemanID from Personal group by JobDescription,SpacemanID
+
+--Hard part
+--4
+--Given the following dataset, find the students that share the same birthday.(Student Table)
+select distinct s1.StudentName, s1.Birthday from Student as s1
+inner join student as s2
+on s1.Birthday = s2.Birthday
+and s1.StudentName<>s2.StudentName
+
+
